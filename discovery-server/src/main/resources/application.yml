@@ -1,0 +1,25 @@
+server:
+  port: 8765
+
+spring:
+  application:
+    name: discovery-server
+    instance-id: ${spring.application.name}-01
+  main:
+    banner-mode: log
+
+eureka:
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.instance-id:${server.port}}
+    metadata-map:
+      microservice:
+        name: ${spring.application.name}
+        instance-id: ${spring.application.instance-id}
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    enable-self-preservation: true

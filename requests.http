@@ -1,0 +1,2 @@
+# call microservice-b to get result from microservice-a
+GET http://localhost:9811/microservice-a
