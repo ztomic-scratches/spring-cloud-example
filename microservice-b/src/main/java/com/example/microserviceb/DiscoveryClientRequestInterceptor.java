@@ -49,17 +49,9 @@ public class DiscoveryClientRequestInterceptor implements ClientHttpRequestInter
 			if (context instanceof ServiceRetryPolicy.ServiceRetryContext) {
 				retryContext = (ServiceRetryPolicy.ServiceRetryContext) context;
 				serviceInstance = retryContext.getServiceInstance();
-				log.info("Using {} for '{}' request.", serviceInstance, originalUri);
+				log.debug("Using {} for '{}' request.", serviceInstance, originalUri);
 			}
-			ClientHttpResponse response = execution.execute(new ServiceRequestWrapper(request, serviceInstance), body);
-			retryContext.setAttribute("RESPONSE", response);
-			return response;
-		}, context -> {
-			Throwable lastThrowable = context.getLastThrowable();
-			if (lastThrowable != null) {
-				throw (Exception) lastThrowable;
-			}
-			return (ClientHttpResponse) context.getAttribute("RESPONSE");
+			return execution.execute(new ServiceRequestWrapper(request, serviceInstance), body);
 		});
 	}
 
