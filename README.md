@@ -5,6 +5,46 @@ If spring-webflux is not in classpath, then classic RestTemplate is created as '
 NOTE: If 'spring-webflux' is not in classpath, you cannot use `@LoadBalanced` as qualifier. You can use only `@Qualifier("loadBalancedRestTemplate") RestTemplate loadBalancedRestTemplate`
 NODE: `@Qualifier("loadBalancedRestTemplate") RestTemplate loadBalancedRestTemplate` is working in both cases
 
+* `DiscoveryClientRequestInterceptor` should be dropped in favour of custom service instance health check implementation if https://github.com/spring-cloud/spring-cloud-commons/issues/763 is possible (for applications without `spring-webflux`)
+
+```java
+@SpringBootApplication
+@EnableEurekaClient
+@EnableRetry
+@LoadBalancerClients(defaultConfiguration = CustomLoadBalancerConfiguration.class)
+class MyApplication {
+
+}
+
+public class CustomLoadBalancerConfiguration {
+
+	@ConditionalOnClass(WebClient.class)
+	@Bean
+	public ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
+			ConfigurableApplicationContext context,
+			WebClient.Builder webClientBuilder) {
+		return ServiceInstanceListSupplier.builder()
+				.withBlockingDiscoveryClient()
+				.withCaching()
+				.withHealthChecks(webClientBuilder.build())
+				.build(context);
+	}
+
+	@ConditionalOnMissingClass("org.springframework.web.reactive.function.client.WebClient")
+	@Bean
+	public ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
+			ConfigurableApplicationContext context,
+			RestTemplateBuilder restTemplateBuilder) {
+		return ServiceInstanceListSupplier.builder()
+				.withBlockingDiscoveryClient()
+				.withCaching()
+				.withHealthChecks(new RestTemplateServiceInstanceHealthChecks(restTemplateBuilder.build())) // currently not possible
+				.build(context);
+	}
+
+}
+```
+
 # Running
 
 * Start `discovery-server`
