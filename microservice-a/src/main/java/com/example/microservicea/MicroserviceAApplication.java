@@ -2,6 +2,9 @@ package com.example.microservicea;
 
 import java.time.LocalDateTime;
 
+import com.example.common.cloud.annotation.EnableLoadBalanced;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,13 +21,8 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootApplication
 @EnableEurekaClient
 @EnableRetry
+@EnableLoadBalanced
 public class MicroserviceAApplication {
-
-	@Bean("loadBalancedRestTemplate")
-	@LoadBalanced
-	public RestTemplate loadBalancedRestTemplate(RestTemplateBuilder restTemplateBuilder) {
-		return restTemplateBuilder.build();
-	}
 
 	@RestController
 	class SampleController {
@@ -32,7 +30,7 @@ public class MicroserviceAApplication {
 		private final RestTemplate loadBalancedRestTemplate;
 		private final String instanceId;
 
-		SampleController(@LoadBalanced RestTemplate loadBalancedRestTemplate, @Value("${spring.application.instance-id}") String instanceId) {
+		SampleController(@Qualifier("loadBalancedRestTemplate") RestTemplate loadBalancedRestTemplate, @Value("${spring.application.instance-id}") String instanceId) {
 			this.loadBalancedRestTemplate = loadBalancedRestTemplate;
 			this.instanceId = instanceId;
 		}

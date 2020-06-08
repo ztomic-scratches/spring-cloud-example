@@ -1,10 +1,13 @@
-package com.example.microserviceb;
+package com.example.common.cloud.discovery.rest;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,8 @@ public class DiscoveryClientRequestInterceptor implements ClientHttpRequestInter
 
 	private final DiscoveryClient discoveryClient;
 
+	private final Map<String, AtomicInteger> positions = new HashMap<>();
+
 	public DiscoveryClientRequestInterceptor(DiscoveryClient discoveryClient) {
 		this.discoveryClient = discoveryClient;
 	}
@@ -49,7 +54,7 @@ public class DiscoveryClientRequestInterceptor implements ClientHttpRequestInter
 			if (context instanceof ServiceRetryPolicy.ServiceRetryContext) {
 				retryContext = (ServiceRetryPolicy.ServiceRetryContext) context;
 				serviceInstance = retryContext.getServiceInstance();
-				log.debug("Using {} for '{}' request.", serviceInstance, originalUri);
+				log.trace("Using {} for '{}' request.", serviceInstance, originalUri);
 			}
 			return execution.execute(new ServiceRequestWrapper(request, serviceInstance), body);
 		});
@@ -119,10 +124,19 @@ public class DiscoveryClientRequestInterceptor implements ClientHttpRequestInter
 
 			public ServiceInstance getServiceInstance() {
 				if (serviceInstance == null) {
-					Optional<ServiceInstance> serviceInstanceOptional = serviceInstances.stream().findAny();
-					if (serviceInstanceOptional.isPresent()) {
-						serviceInstances.remove(serviceInstanceOptional.get());
-						serviceInstance = serviceInstanceOptional.get();
+					synchronized (positions) {
+						if (serviceInstances.size() > 1) {
+							int pos = Math.abs(positions.computeIfAbsent(serviceName, s -> new AtomicInteger()).incrementAndGet());
+							ServiceInstance instance = serviceInstances.get(pos % serviceInstances.size());
+							serviceInstances.remove(instance);
+							serviceInstance = instance;
+						} else {
+							Optional<ServiceInstance> serviceInstanceOptional = serviceInstances.stream().findAny();
+							if (serviceInstanceOptional.isPresent()) {
+								serviceInstances.remove(serviceInstanceOptional.get());
+								serviceInstance = serviceInstanceOptional.get();
+							}
+						}
 					}
 				}
 				return serviceInstance;

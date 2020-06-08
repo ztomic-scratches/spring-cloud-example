@@ -23,6 +23,7 @@
 	</properties>
 
 	<modules>
+		<module>microservice-common</module>
 		<module>discovery-server</module>
 		<module>microservice-a</module>
 		<module>microservice-b</module>
@@ -64,6 +65,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>microservice-common</artifactId>
+				<version>${revision}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>

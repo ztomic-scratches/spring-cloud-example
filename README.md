@@ -1,3 +1,10 @@
+# Load balanced RestTemplate example
+
+* Example can run with or without spring-webflux. If spring-webflux is in classpath, default `@LoadBalanced` configuration is used.
+If spring-webflux is not in classpath, then classic RestTemplate is created as 'loadBalancedRestTemplate' bean with `DiscoveryClientRequestInterceptor`.
+NOTE: If 'spring-webflux' is not in classpath, you cannot use `@LoadBalanced` as qualifier. You can use only `@Qualifier("loadBalancedRestTemplate") RestTemplate loadBalancedRestTemplate`
+NODE: `@Qualifier("loadBalancedRestTemplate") RestTemplate loadBalancedRestTemplate` is working in both cases
+
 # Running
 
 * Start `discovery-server`
