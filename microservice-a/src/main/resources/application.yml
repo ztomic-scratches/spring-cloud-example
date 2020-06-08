@@ -5,6 +5,12 @@ spring:
   application:
     name: microservice-a
     instance-id: ${spring.application.name}-01
+  cloud:
+    loadbalancer:
+#      cache:
+#        enabled: false
+      healthcheck:
+        interval: 3s
 
 eureka:
   instance:
