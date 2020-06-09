@@ -1,3 +1,5 @@
+![Java CI with Maven](https://github.com/ztomic/spring-cloud-example/workflows/Java%20CI%20with%20Maven/badge.svg)
+
 # Load balanced RestTemplate example
 
 * Example can run with or without spring-webflux. If spring-webflux is in classpath, default `@LoadBalanced` configuration is used.
